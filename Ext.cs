@@ -20,15 +20,22 @@ namespace TowerAscension
             return Game.instance.model.GetTowerFromId(model.name);
         }
 
-        public static void UpdateTowerModels(this GameModel gameModel, IEnumerable<TowerModel> updatedTowers)
+        public static void UpdateTowerModels(this InGame inGame, IEnumerable<TowerModel> updatedTowers)
         {
+            var gameModel = inGame.GetGameModel();
+
             var list = gameModel.towers.ToList();
             foreach (var tower in updatedTowers)
             {
-                int i = list.FindIndex(t =>  t.name == tower.name);
+                int i = list.FindIndex(t => t.name == tower.name);
 
                 list.RemoveAt(i);
                 list.Insert(i, tower);
+
+                foreach(var t in inGame.GetTowers().Where(t => t.towerModel.name == tower.name))
+                {
+                    t.UpdateRootModel(tower);
+                }
             }
 
             gameModel.towers = list.ToIl2CppReferenceArray();
@@ -42,19 +49,6 @@ namespace TowerAscension
         public static TowerModel GetDefaultModel(this Tower tower)
         {
             return tower.towerModel.GetDefault();
-        }
-
-        public static void SellTowers(this InGame inGame, string baseId = "", float newWorth = -1)
-        {
-            foreach(var twr in inGame.GetTowersOfType(baseId))
-            {
-                if(newWorth >= 0)
-                {
-                    twr.worth = newWorth;
-                }
-
-                twr.SellTower();
-            }
         }
 
         public static bool Is<T>(this Model model, out T t) where T : Model

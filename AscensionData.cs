@@ -48,8 +48,6 @@ namespace TowerAscension
 
             AscensionModifier.GetAscensionModifier(TowerId).DoAscend(Rank, InGame.instance);
 
-            InGame.instance.SellTowers(TowerId, 0);
-
             AscensionUi.instance?.UpdateForData(this);
         }
     }

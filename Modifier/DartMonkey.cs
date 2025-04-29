@@ -22,9 +22,10 @@ namespace TowerAscension.Modifier
 
             foreach (TowerModel tm in inGame.GetGameModel().towers.Duplicate().Where(t => t.baseId == TowerId).Select(t => t.GetDefault()))
             {
-
-                tm.IncreaseRange(6 * (1 + MathF.Log2(rank + 1)));
-
+                if (rank > 0)
+                {
+                    tm.IncreaseRange(6 * (1 + MathF.Log2(rank + 1)));
+                }
 
                 foreach (var wpn in tm.GetWeapons())
                 {
@@ -37,13 +38,19 @@ namespace TowerAscension.Modifier
                         emission = new(wpn.emission.name, 1 + rank, 0, rank == 1 ? 5 : 30, null, false, false);
                     }
 
-                    wpn.rate /= MathF.Pow(rank, 1.115f);
+                    if (rank > 0)
+                    {
+                        wpn.rate /= MathF.Pow(rank, 1.115f);
+                    }
 
                     foreach(var proj in wpn.GetDescendants<ProjectileModel>().ToList())
                     {
                         if (proj.GetDamageModel() != null)
                         {
-                            proj.GetDamageModel().damage *= 1 + (MathF.Pow(rank, 1.2f) - (rank / 1.15f));
+                            if (rank > 0)
+                            {
+                                proj.GetDamageModel().damage *= 1 + (MathF.Pow(rank, 1.2f) - (rank / 1.15f));
+                            }
 
                             if(rank > 2)
                             {
@@ -55,7 +62,7 @@ namespace TowerAscension.Modifier
 
                         if (travelModel != null)
                         {
-                            travelModel.lifespan *= tm.range / tm.GetDefault().range;
+                            travelModel.lifespan *= 1 + (rank * 0.15f);
                         }
                     }
                 }
@@ -68,7 +75,7 @@ namespace TowerAscension.Modifier
                 newTowers.Add(tm);
             }
 
-            inGame.GetGameModel().UpdateTowerModels(newTowers);
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }

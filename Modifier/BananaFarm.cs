@@ -33,7 +33,7 @@ namespace TowerAscension.Modifier
                 newTowers.Add(tm);
             }
 
-            inGame.GetGameModel().UpdateTowerModels(newTowers);
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }

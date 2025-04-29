@@ -25,14 +25,15 @@ namespace TowerAscension.Modifier
                 if (wpn.emission.Is<ArcEmissionModel>(out var emission))
                 {
                     emission.count += rank * 2;
-                    wpn.projectile.GetDamageModel().damage *= 1 + MathF.Log2(rank);
+                    if (rank > 0)
+                    {
+                        wpn.projectile.GetDamageModel().damage *= 1 + MathF.Log2(rank);
+                    }
                 }
 
                 if(rank >= 3 && tm.tiers[0] == 5)
                 {
                     wpn = tm.GetWeapon(1).Duplicate();
-
-                    wpn.rate *= 2;
                     wpn.rate /= rank - 2;
 
                     wpn.emission = new ArcEmissionModel("ArcEmissionModel", 8, 0, 360, null, false, false);
@@ -47,7 +48,7 @@ namespace TowerAscension.Modifier
                 newTowers.Add(tm);
             }
 
-            inGame.GetGameModel().UpdateTowerModels(newTowers);
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }

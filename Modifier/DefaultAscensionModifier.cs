@@ -48,14 +48,16 @@ namespace TowerAscension.Modifier
 
                     foreach (var wpn in atk.weapons)
                     {
-                        wpn.rate *= rank != 0 ? Mathf.Pow(6 * rank / (5 * rank), 8 * rank / 9) : 1;
-                        foreach (var dmgModel in wpn.projectile.GetDescendants<DamageModel>().ToList())
+                        if (rank > 0)
                         {
-                            dmgModel.damage *= rank != 0 ? Mathf.Pow(6 * rank / (5 * rank), 8 * rank / 9) : 1;
+                            wpn.rate *= rank != 0 ? Mathf.Pow(6 * rank / (5 * rank), 8 * rank / 9) : 1;
+                            foreach (var dmgModel in wpn.projectile.GetDescendants<DamageModel>().ToList())
+                            {
+                                dmgModel.damage *= rank != 0 ? Mathf.Pow(6 * rank / (5 * rank), 8 * rank / 9) : 1;
+                            }
                         }
 
-                        float lifespanMultiplier = atk.range / atk.range - (rank * 5);
-                        ModHelper.Log<TowerAscension>(lifespanMultiplier);
+                        float lifespanMultiplier = 1 + (rank * 0.15f);
 
                         if (wpn.projectile.HasBehavior<TravelStraitModel>())
                         {
@@ -88,7 +90,7 @@ namespace TowerAscension.Modifier
                 newTowers.Add(tm);
             }
 
-            inGame.GetGameModel().UpdateTowerModels(newTowers);
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }

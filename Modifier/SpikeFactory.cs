@@ -25,8 +25,10 @@ namespace TowerAscension.Modifier
             {
                 foreach (var wpn in tm.GetWeapons())
                 {
-                    wpn.rate /= MathF.Pow(rank, 1.115f);
-
+                    if (rank > 0)
+                    {
+                        wpn.rate /= MathF.Pow(rank, 1.115f);
+                    }
                     foreach (var proj in wpn.GetDescendants<ProjectileModel>().ToList())
                     {
                         if (proj.GetDamageModel() != null && rank > 2)
@@ -43,7 +45,7 @@ namespace TowerAscension.Modifier
                 newTowers.Add(tm);
             }
 
-            inGame.GetGameModel().UpdateTowerModels(newTowers);
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }

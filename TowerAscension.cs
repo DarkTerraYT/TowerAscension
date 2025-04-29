@@ -28,6 +28,8 @@ using Il2CppAssets.Scripts.Unity.Towers.Behaviors.Abilities.Behaviors;
 using static Il2CppSystem.Array;
 using BTD_Mod_Helper.Api.Hooks.BloonHooks;
 using BTD_Mod_Helper.Api.Hooks;
+using Il2CppAssets.Scripts.Models.Towers.Weapons;
+using Il2CppAssets.Scripts.Simulation.Towers.Behaviors.Abilities;
 
 [assembly: MelonInfo(typeof(TowerAscension.TowerAscension), ModHelperData.Name, ModHelperData.Version, ModHelperData.RepoOwner)]
 [assembly: MelonGame("Ninja Kiwi", "BloonsTD6")]
@@ -52,7 +54,7 @@ public class TowerAscension : BloonsTD6Mod
         }
     }
 
-    public static string[] BannedTowers => [TowerType.MonkeyVillage];
+    public static string[] BannedTowers => [TowerType.MonkeyVillage, "TimeMaster-TimeMaster_Tower"];
 
     public static bool IsBanned(TowerModel tm) => BannedTowers.Contains(tm.baseId) || tm.IsHero();
 
@@ -94,9 +96,16 @@ public class TowerAscension : BloonsTD6Mod
         }
     }
 
+    public override void OnAbilityCast(Ability ability)
+    {
+        LoggerInstance.Msg(ability.abilityModel.cooldown);
+    }
+
     [HookTarget(typeof(BloonDamageHook), HookTargetAttribute.EHookType.Postfix)]
     [HookPriority(HookPriorityAttribute.Higher)]
-    public static bool BloonDamagePostfix(Bloon @this, Tower tower, float totalAmount)
+    public static bool BloonDamagePostfix(Bloon @this, ref float totalAmount, Projectile projectile, ref bool distributeToChildren,
+ref bool overrideDistributeBlocker, ref bool createEffect, Tower tower, BloonProperties immuneBloonProperties,
+BloonProperties originalImmuneBloonProperties, ref bool canDestroyProjectile, ref bool ignoreNonTargetable, ref bool blockSpawnChildren, HookNullable<int> powerActivatedByPlayerId)
     {
         if (tower != null && !IsBanned(tower.towerModel) && !DataById[tower.towerModel.baseId].IncreasePopsOnGenerateCash)
         {
