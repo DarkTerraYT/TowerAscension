@@ -16,20 +16,17 @@ using BTD_Mod_Helper.Extensions;
 using Il2CppAssets.Scripts.Models.Profile;
 using Il2CppAssets.Scripts.Simulation.Track;
 using Newtonsoft.Json;
-using System.Collections;
 using Il2CppAssets.Scripts.Unity;
 using System.Linq;
-using UnityEngine;
 using System;
 using Il2CppAssets.Scripts.Simulation.Towers.Projectiles.Behaviors;
 using Il2CppAssets.Scripts.Simulation.Towers.Projectiles;
-using Il2CppAssets.Scripts.Models.Towers.Behaviors;
-using Il2CppAssets.Scripts.Unity.Towers.Behaviors.Abilities.Behaviors;
-using static Il2CppSystem.Array;
 using BTD_Mod_Helper.Api.Hooks.BloonHooks;
 using BTD_Mod_Helper.Api.Hooks;
-using Il2CppAssets.Scripts.Models.Towers.Weapons;
 using Il2CppAssets.Scripts.Simulation.Towers.Behaviors.Abilities;
+using Il2CppAssets.Scripts.Models.Map;
+using static MelonLoader.MelonLogger;
+using Il2CppAssets.Scripts.Simulation;
 
 [assembly: MelonInfo(typeof(TowerAscension.TowerAscension), ModHelperData.Name, ModHelperData.Version, ModHelperData.RepoOwner)]
 [assembly: MelonGame("Ninja Kiwi", "BloonsTD6")]
@@ -56,7 +53,7 @@ public class TowerAscension : BloonsTD6Mod
 
     public static string[] BannedTowers => [TowerType.MonkeyVillage, "TimeMaster-TimeMaster_Tower"];
 
-    public static bool IsBanned(TowerModel tm) => BannedTowers.Contains(tm.baseId) || tm.IsHero();
+    public static bool IsBanned(TowerModel tm) => BannedTowers.Contains(tm.baseId) || tm.IsHero() || tm.isPowerTower;
 
     static IEnumerable<AscensionData> CreateData()
     {
@@ -66,6 +63,21 @@ public class TowerAscension : BloonsTD6Mod
             data.TowerId = twr.baseId;
 
             yield return data;
+        }
+    }
+
+    public override void OnTowerCreated(Tower tower, Entity target, Model modelToUse)
+    {
+        if (!IsBanned(tower.towerModel))
+        {
+            AscensionModifier.GetAscensionModifier(tower.towerModel.baseId).Apply(DataById[tower.towerModel.baseId].Rank, tower, tower.GetDefaultModel());
+        }
+    }
+    public override void OnTowerUpgraded(Tower tower, string upgradeName, TowerModel newBaseTowerModel)
+    {
+        if (!IsBanned(tower.towerModel))
+        {
+            AscensionModifier.GetAscensionModifier(tower.towerModel.baseId).Apply(DataById[tower.towerModel.baseId].Rank, tower, tower.GetDefaultModel());
         }
     }
 
@@ -88,17 +100,26 @@ public class TowerAscension : BloonsTD6Mod
                     DataById[data.TowerId] = data;
                 }
             }
-            foreach (var data in DataById.Values)
+
+            foreach(var mod in AscensionModifier.ModifierByTowerId.Values)
             {
-                AscensionModifier.GetAscensionModifier(data.TowerId).DoAscend(data.Rank, __instance);
+                mod.OnEnterMatch(__instance);
             }
+
             AscensionUiBtn.Create(InGame.instance);
         }
     }
 
-    public override void OnAbilityCast(Ability ability)
+    public override void OnCashAdded(double amount, Simulation.CashType from, int cashIndex, Simulation.CashSource source, Tower tower)
     {
-        LoggerInstance.Msg(ability.abilityModel.cooldown);
+        if (tower != null && source != Simulation.CashSource.TowerSold && amount > 0 && !IsBanned(tower.towerModel))
+        {
+            if (DataById[tower.towerModel.baseId].IncreasePopsOnGenerateCash)
+            {
+                DataById[tower.towerModel.baseId].Pops += (float)amount;
+                AscensionUi.instance?.UpdateForData(DataById[tower.towerModel.baseId]);
+            }
+        }
     }
 
     [HookTarget(typeof(BloonDamageHook), HookTargetAttribute.EHookType.Postfix)]
@@ -114,21 +135,5 @@ BloonProperties originalImmuneBloonProperties, ref bool canDestroyProjectile, re
         }
 
         return true;
-    }
-
-    [HarmonyPatch(typeof(Cash), nameof(Cash.Pickup))]
-    public static class CashModel_Collect
-    {
-        public static void Postfix(Cash __instance, float __result)
-        {
-            Tower twr = __instance.projectile.Weapon.attack.tower;
-            if (twr != null)
-            {
-                if (DataById[twr.towerModel.baseId].IncreasePopsOnGenerateCash) 
-                {
-                    DataById[twr.towerModel.baseId].Pops += __result;
-                }
-            }
-        }
     }
 }

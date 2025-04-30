@@ -39,6 +39,10 @@ namespace TowerAscension.Ui
         {
             var panel = PanelByTower[data.TowerId];
             panel.Background.SetSprite(GetSpriteForRank(data.Rank));
+
+            var rankText = panel.transform.Find("Rank").GetComponent<ModHelperText>();
+            rankText.Text.text = data.Rank.ToString("#,###");
+
             var popsBar = panel.transform.FindChild("PopsBar");
             var popsFill = popsBar.FindChild("Fill").Cast<RectTransform>();
             var popsText = popsBar.FindChild("PopsText").GetComponent<ModHelperText>();
@@ -130,6 +134,10 @@ namespace TowerAscension.Ui
             var panel = ModHelperPanel.Create(new("AscensionData_" + twr.name, AscensionPanelWidth, AscensionPanelHeight), GetSpriteForRank(TowerAscension.DataById[towerId].Rank));
 
             var icon = panel.AddImage(new("Icon", 0, 100, 400), Game.instance.model.GetTowerFromId(towerId).icon.GetGUID());
+            var rankText = panel.AddText(new("Rank", 0, -150, 400, 100), TowerAscension.DataById[towerId].Rank.ToString("#,###"));
+            rankText.Text.fontSizeMax = 60;
+            rankText.Text.enableAutoSizing = true;
+            rankText.Text.color = new Color32(192, 143, 18, 255);
             var nameText = panel.AddText(new("Name", 0, AscensionPanelHeight / 2 - 50, AscensionPanelWidth, 100), towerId.Localize());
             nameText.Text.enableAutoSizing = true;
 

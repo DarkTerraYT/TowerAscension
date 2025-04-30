@@ -4,12 +4,14 @@ using Il2CppAssets.Scripts.Models.Towers.Behaviors.Emissions;
 using Il2CppAssets.Scripts.Models.Towers.Filters;
 using Il2CppAssets.Scripts.Models.Towers.Projectiles;
 using Il2CppAssets.Scripts.Models.Towers.Projectiles.Behaviors;
+using Il2CppAssets.Scripts.Simulation.Towers;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Il2CppSystem.DateTimeParse;
 
 namespace TowerAscension.Modifier
 {
@@ -17,35 +19,28 @@ namespace TowerAscension.Modifier
     {
         public override string TowerId => TowerType.SpikeFactory;
 
-        public override void OnAscend(int rank, InGame inGame)
+        public override void Apply(int rank, Tower tower, TowerModel defaultTowerModel)
         {
-            List<TowerModel> newTowers = [];
-
-            foreach (TowerModel tm in inGame.GetGameModel().towers.Duplicate().Where(t => t.baseId == TowerId).Select(t => t.GetDefault()))
+            foreach (var wpn in defaultTowerModel.GetWeapons())
             {
-                foreach (var wpn in tm.GetWeapons())
+                if (rank > 0)
                 {
-                    if (rank > 0)
-                    {
-                        wpn.rate /= MathF.Pow(rank, 1.115f);
-                    }
-                    foreach (var proj in wpn.GetDescendants<ProjectileModel>().ToList())
-                    {
-                        if (proj.GetDamageModel() != null && rank > 2)
-                        {
-                            proj.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.None;
-                        }
-
-                        proj.pierce += 5 * rank;
-                        proj.GetBehavior<AgeModel>().rounds += Math.Clamp(rank - 1, 0, 10);
-                        proj.GetBehavior<AgeModel>().lifespan += Math.Clamp(rank - 1, 0, 10) * 15;
-                    }
+                    wpn.rate /= MathF.Pow(rank, 1.115f);
                 }
+                foreach (var proj in wpn.GetDescendants<ProjectileModel>().ToList())
+                {
+                    if (proj.GetDamageModel() != null && rank > 2)
+                    {
+                        proj.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.None;
+                    }
 
-                newTowers.Add(tm);
+                    proj.pierce += 5 * rank;
+                    proj.GetBehavior<AgeModel>().rounds += Math.Clamp(rank - 1, 0, 10);
+                    proj.GetBehavior<AgeModel>().lifespan += Math.Clamp(rank - 1, 0, 10) * 15;
+                }
             }
 
-            inGame.UpdateTowerModels(newTowers);
+            tower.UpdateRootModel(defaultTowerModel);
         }
     }
 }

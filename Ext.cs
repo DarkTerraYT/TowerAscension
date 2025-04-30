@@ -1,4 +1,5 @@
-﻿using BTD_Mod_Helper.Extensions;
+﻿using BTD_Mod_Helper;
+using BTD_Mod_Helper.Extensions;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.Towers;
 using Il2CppAssets.Scripts.Simulation.Towers;
@@ -35,6 +36,7 @@ namespace TowerAscension
                 foreach(var t in inGame.GetTowers().Where(t => t.towerModel.name == tower.name))
                 {
                     t.UpdateRootModel(tower);
+                    ModHelper.Log<TowerAscension>(t.towerModel.name);
                 }
             }
 
