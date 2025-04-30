@@ -34,14 +34,14 @@ namespace TowerAscension
         {
             if (CanAscend())
             {
-                PopupScreen.instance.SafelyQueue(popup => popup.ShowPopup(PopupScreen.Placement.inGameCenter, AscensionUi.AscensionTitleText, AscensionConfirmPopupBody.Replace("{Tower}", TowerId.GetBtd6Localization()), new Action(() => { Ascend(); }), ConfirmText, null, "Cancel", Popup.TransitionAnim.Scale));
+                PopupScreen.instance.SafelyQueue(popup => popup.ShowPopup(PopupScreen.Placement.inGameCenter, "Ascend Tower", $"Ascending {TowerId.GetBtd6Localization()} will grant this tower with great buffs, however, all {TowerId.GetBtd6Localization()}s you have placed down will be sold.", new Action(() => { Ascend(); }), "Ascend", null, "Cancel", Popup.TransitionAnim.Scale));
                 return true;
             }
             return false;
         }
 
-        public void Ascend()
-        {
+        public void Ascend() 
+        { 
             Rank++;
             Pops = 0;
             PopsRequired *= 1.25f;
