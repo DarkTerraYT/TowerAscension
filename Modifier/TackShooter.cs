@@ -22,6 +22,7 @@ namespace TowerAscension.Modifier
             if (wpn.emission.Is<ArcEmissionModel>(out var emission))
             {
                 emission.count += rank * 2;
+                wpn.emission = emission;
             }
 
             if (rank > 0)

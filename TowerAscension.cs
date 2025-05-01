@@ -53,7 +53,7 @@ public class TowerAscension : BloonsTD6Mod
 
     public static string[] BannedTowers => [TowerType.MonkeyVillage, "TimeMaster-TimeMaster_Tower"];
 
-    public static bool IsBanned(TowerModel tm) => BannedTowers.Contains(tm.baseId) || tm.IsHero() || tm.isPowerTower;
+    public static bool IsBanned(TowerModel tm) => BannedTowers.Contains(tm.baseId) || tm.IsHero() || tm.isPowerTower || tm.isSubTower;
 
     static IEnumerable<AscensionData> CreateData()
     {
