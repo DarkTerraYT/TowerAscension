@@ -46,7 +46,7 @@ namespace TowerAscension
             Pops = 0;
             PopsRequired *= 1.25f;
 
-            AscensionModifier.GetAscensionModifier(TowerId).Apply(Rank, InGame.instance);
+            AscensionModifier.GetAscensionModifier(TowerId).DoAscend(Rank, InGame.instance);
 
             AscensionUi.instance?.UpdateForData(this);
         }

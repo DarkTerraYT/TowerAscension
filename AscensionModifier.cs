@@ -26,6 +26,8 @@ namespace TowerAscension
             {
                 var newModifier = new DefaultAscensionModifier(tower);
                 newModifier.RealTower = tower;
+                newModifier.mod = ModHelper.GetMod("TowerAscension");
+                newModifier.Ascend = newModifier.OnAscend;
                 return newModifier;
             }
 
@@ -48,11 +50,13 @@ namespace TowerAscension
 
         public override void Register()
         {
-            if(m_ModifierByTowerId.ContainsKey(TowerId) && !Replace)
+            if (m_ModifierByTowerId.ContainsKey(TowerId) && !Replace)
             {
                 ModHelper.Warning<TowerAscension>($"Ascenion Modifier for tower {TowerId} already exists. If you're trying to replace, override \"AscensionModifier.Replace\"");
                 return;
             }
+
+            Ascend = OnAscend;
 
             m_ModifierByTowerId[TowerId] = this;
         }
@@ -67,15 +71,14 @@ namespace TowerAscension
 
         public virtual bool BaseTower => true;
 
-        public abstract void Apply(int rank, Tower tower, TowerModel defaultTowerModel);
-
-        public virtual void Apply(int rank, InGame inGame)
+        public void DoAscend(int rank, InGame inGame)
         {
-            foreach(var twr in inGame.GetTowersOfType(TowerId))
-            {
-                Apply(rank, twr, twr.GetDefaultModel());
-            }
+            Ascend(rank, inGame);
         }
+
+        public abstract void OnAscend(int rank, InGame inGame);
+
+        public event OnAscend_Delagate Ascend = (rank, inGame) => { };
 
         protected TowerModel GetDefaultTowerModel(string id)
         {

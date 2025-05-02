@@ -19,28 +19,34 @@ namespace TowerAscension.Modifier
     {
         public override string TowerId => TowerType.SpikeFactory;
 
-        public override void Apply(int rank, Tower tower, TowerModel defaultTowerModel)
+        public override void OnAscend(int rank, InGame inGame)
         {
-            foreach (var wpn in defaultTowerModel.GetWeapons())
-            {
-                if (rank > 0)
-                {
-                    wpn.rate /= MathF.Pow(rank, 1.115f);
-                }
-                foreach (var proj in wpn.GetDescendants<ProjectileModel>().ToList())
-                {
-                    if (proj.GetDamageModel() != null && rank > 2)
-                    {
-                        proj.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.None;
-                    }
+            List<TowerModel> newTowers = [];
 
-                    proj.pierce += 5 * rank;
-                    proj.GetBehavior<AgeModel>().rounds += Math.Clamp(rank - 1, 0, 10);
-                    proj.GetBehavior<AgeModel>().lifespan += Math.Clamp(rank - 1, 0, 10) * 15;
+            foreach (var defaultTowerModel in inGame.GetGameModel().towers.Where(tm => tm.baseId == TowerId).Select(tm => tm.GetDefault()))
+            {
+                foreach (var wpn in defaultTowerModel.GetWeapons())
+                {
+                    if (rank > 0)
+                    {
+                        wpn.rate /= MathF.Pow(rank, 1.115f);
+                    }
+                    foreach (var proj in wpn.GetDescendants<ProjectileModel>().ToList())
+                    {
+                        if (proj.GetDamageModel() != null && rank > 2)
+                        {
+                            proj.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.None;
+                        }
+
+                        proj.pierce += 5 * rank;
+                        proj.GetBehavior<AgeModel>().rounds += Math.Clamp(rank - 1, 0, 10);
+                        proj.GetBehavior<AgeModel>().lifespan += Math.Clamp(rank - 1, 0, 10) * 15;
+                    }
                 }
+                newTowers.Add(defaultTowerModel);
             }
 
-            tower.UpdateRootModel(defaultTowerModel);
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }

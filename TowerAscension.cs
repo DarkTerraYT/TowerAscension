@@ -66,21 +66,6 @@ public class TowerAscension : BloonsTD6Mod
         }
     }
 
-    public override void OnTowerCreated(Tower tower, Entity target, Model modelToUse)
-    {
-        if (!IsBanned(tower.towerModel))
-        {
-            AscensionModifier.GetAscensionModifier(tower.towerModel.baseId).Apply(DataById[tower.towerModel.baseId].Rank, tower, tower.GetDefaultModel());
-        }
-    }
-    public override void OnTowerUpgraded(Tower tower, string upgradeName, TowerModel newBaseTowerModel)
-    {
-        if (!IsBanned(tower.towerModel))
-        {
-            AscensionModifier.GetAscensionModifier(tower.towerModel.baseId).Apply(DataById[tower.towerModel.baseId].Rank, tower, tower.GetDefaultModel());
-        }
-    }
-
     [HarmonyPatch(typeof(InGame), nameof(InGame.StartMatch))]
     static class InGame_StartMatch
     {

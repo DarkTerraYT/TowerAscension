@@ -18,7 +18,7 @@ namespace TowerAscension
     {
         public static TowerModel GetDefault(this TowerModel model)
         {
-            return Game.instance.model.GetTowerFromId(model.name);
+            return Game.instance.model.GetTowerFromId(model.name).Duplicate();
         }
 
         public static void UpdateTowerModels(this InGame inGame, IEnumerable<TowerModel> updatedTowers)
@@ -33,7 +33,7 @@ namespace TowerAscension
                 list.RemoveAt(i);
                 list.Insert(i, tower);
 
-                foreach(var t in inGame.GetTowers().Where(t => t.towerModel.name == tower.name))
+                foreach(var t in inGame.GetTowers(tower.name))
                 {
                     t.UpdateRootModel(tower);
                     ModHelper.Log<TowerAscension>(t.towerModel.name);

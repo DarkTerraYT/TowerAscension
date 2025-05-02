@@ -18,59 +18,69 @@ namespace TowerAscension.Modifier
     {
         public override string TowerId => TowerType.DartMonkey;
 
-        public override void Apply(int rank, Tower tower, TowerModel defaultTowerModel)
-        {
-            if (rank > 0)
-            {
-                defaultTowerModel.IncreaseRange(6 * (1 + MathF.Log2(rank + 1)));
-            }
+        public override void OnAscend(int rank, InGame inGame)
+        { 
 
-            foreach (var wpn in defaultTowerModel.GetWeapons())
-            {
-                if (wpn.emission.Is<ArcEmissionModel>(out var emission))
-                {
-                    emission.count += rank;
-                    wpn.emission = emission;
-                }
-                else
-                {
-                    emission = new(wpn.emission.name, 1 + rank, 0, rank == 1 ? 5 : 30, wpn.emission.behaviors, false, false);
-                    wpn.emission = emission;
-                }
+            List<TowerModel> newTowers = [];
 
+            foreach (var defaultTowerModel in inGame.GetGameModel().towers.Where(tm => tm.baseId == TowerId).Select(tm => tm.GetDefault()))
+            {
                 if (rank > 0)
                 {
-                    wpn.rate /= MathF.Pow(rank, 1.115f);
+                    defaultTowerModel.IncreaseRange(6 * (1 + MathF.Log2(rank + 1)));
                 }
 
-                foreach (var proj in wpn.GetDescendants<ProjectileModel>().ToList())
+                foreach (var wpn in defaultTowerModel.GetWeapons())
                 {
-                    if (proj.GetDamageModel() != null)
+                    if (wpn.emission.Is<ArcEmissionModel>(out var emission))
                     {
-                        if (rank > 0)
-                        {
-                            proj.GetDamageModel().damage *= 1 + (MathF.Pow(rank, 1.2f) - (rank / 1.15f));
-                        }
-
-                        if (rank > 2)
-                        {
-                            proj.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.None;
-                        }
+                        emission.count += rank;
+                        wpn.emission = emission;
+                    }
+                    else
+                    {
+                        emission = new(wpn.emission.name, 1 + rank, 0, rank == 1 ? 5 : 30, wpn.emission.behaviors, false, false);
+                        wpn.emission = emission;
                     }
 
-                    var travelModel = proj.GetBehavior<TravelStraitModel>();
-
-                    if (travelModel != null)
+                    if (rank > 0)
                     {
-                        travelModel.lifespan *= 1 + (rank * 0.15f);
+                        wpn.rate /= MathF.Pow(rank, 1.115f);
+                    }
+
+                    foreach (var proj in wpn.GetDescendants<ProjectileModel>().ToList())
+                    {
+                        if (proj.GetDamageModel() != null)
+                        {
+                            if (rank > 0)
+                            {
+                                proj.GetDamageModel().damage *= 1 + (MathF.Pow(rank, 1.2f) - (rank / 1.15f));
+                            }
+
+                            if (rank > 2)
+                            {
+                                proj.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.None;
+                            }
+                        }
+
+                        var travelModel = proj.GetBehavior<TravelStraitModel>();
+
+                        if (travelModel != null)
+                        {
+                            travelModel.lifespan *= 1 + (rank * 0.15f);
+                        }
                     }
                 }
+
+                if (rank >= 1)
+                {
+                    defaultTowerModel.GetDescendants<FilterInvisibleModel>().ForEach(mod => mod.isActive = false);
+                }
+
+                newTowers.Add(defaultTowerModel);
             }
 
-            if (rank >= 1)
-            {
-                defaultTowerModel.GetDescendants<FilterInvisibleModel>().ForEach(mod => mod.isActive = false);
-            }
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }

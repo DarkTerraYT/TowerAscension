@@ -21,13 +21,19 @@ namespace TowerAscension.Modifier
 
         public override float PopsReqMultiplier => .4f;
 
-        public override void Apply(int rank, Tower tower, TowerModel defaultTowerModel)
+        public override void OnAscend(int rank, InGame inGame)
         {
-            foreach (var cashModel in defaultTowerModel.GetDescendants<CashModel>().ToList())
-            {
-                cashModel.bonusMultiplier += 1 * rank;
-            }
+            List<TowerModel> newTowers = [];
 
+            foreach (var defaultTowerModel in inGame.GetGameModel().towers.Where(tm => tm.baseId == TowerId).Select(tm => tm.GetDefault()))
+            {
+                foreach (var cashModel in defaultTowerModel.GetDescendants<CashModel>().ToList())
+                {
+                    cashModel.bonusMultiplier += 1 * rank;
+                }
+                newTowers.Add(defaultTowerModel);
+            }
+            inGame.UpdateTowerModels(newTowers);
         }
     }
 }
