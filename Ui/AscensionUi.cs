@@ -37,21 +37,31 @@ namespace TowerAscension.Ui
 
         public void UpdateForData(AscensionData data)
         {
-            var panel = PanelByTower[data.TowerId];
-            panel.Background.SetSprite(GetSpriteForRank(data.Rank));
+            try
+            {
+                if (addedTowers.Contains(data.TowerId))
+                {
+                    var panel = PanelByTower[data.TowerId];
+                    panel.Background.SetSprite(GetSpriteForRank(data.Rank));
 
-            var rankText = panel.transform.Find("Rank").GetComponent<ModHelperText>();
-            rankText.Text.text = data.Rank.ToString("#,###");
+                    var rankText = panel.transform.Find("Rank").GetComponent<ModHelperText>();
+                    rankText.Text.text = data.Rank.ToString("#,###");
 
-            var popsBar = panel.transform.FindChild("PopsBar");
-            var popsFill = popsBar.FindChild("Fill").Cast<RectTransform>();
-            var popsText = popsBar.FindChild("PopsText").GetComponent<ModHelperText>();
-            popsFill.sizeDelta = new(Mathf.Clamp((float)(data.Pops / data.PopsRequired) * 400, 0, 400), 80);
+                    var popsBar = panel.transform.FindChild("PopsBar");
+                    var popsFill = popsBar.FindChild("Fill").Cast<RectTransform>();
+                    var popsText = popsBar.FindChild("PopsText").GetComponent<ModHelperText>();
+                    popsFill.sizeDelta = new(Mathf.Clamp((float)(data.Pops / data.PopsRequired) * 400, 0, 400), 80);
 
-            popsText.SetText(data.IncreasePopsOnGenerateCash ? $"{data.Pops:#,###}/{data.PopsRequired:#,###} Cash" : $"{data.Pops:#,###}/{data.PopsRequired:#,###} Pops");
+                    popsText.SetText(data.IncreasePopsOnGenerateCash ? $"{data.Pops:#,###}/{data.PopsRequired:#,###} Cash" : $"{data.Pops:#,###}/{data.PopsRequired:#,###} Pops");
 
-            var ascendBtn = panel.transform.FindChild("Ascend").GetComponent<ModHelperButton>();
-            ascendBtn.Button.interactable = data.CanAscend();
+                    var ascendBtn = panel.transform.FindChild("Ascend").GetComponent<ModHelperButton>();
+                    ascendBtn.Button.interactable = data.CanAscend();
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         [HideFromIl2Cpp]
@@ -88,6 +98,8 @@ namespace TowerAscension.Ui
 
             mainPanel.AddButton(new("CloseBtn", AscensionPanelWidth * 2.5f, AscensionPanelHeight / 2 + 112.5f, 200), VanillaSprites.CloseBtn, new Action(mainPanel.Hide));
 
+            addedTowers.Clear();
+
             foreach (var twr in twrs)
             {
                 if(scrollPanel == null || mainPanel == null)
@@ -96,6 +108,7 @@ namespace TowerAscension.Ui
                 }
 
                 scrollPanel.AddScrollContent(CreateAscensionDataPanel(twr));
+                addedTowers.Add(twr.baseId);
                 yield return null;
             }
 

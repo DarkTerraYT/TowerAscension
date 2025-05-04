@@ -3,7 +3,7 @@ namespace TowerAscension;
 public static class ModHelperData
 {
     public const string WorksOnVersion = "48.0";
-    public const string Version = "0.0.6";
+    public const string Version = "0.0.7";
     public const string Name = "Tower Ascension";
 
     public const string Description = "Tower Ascension is a mod adds that a new feature: Tower Ascending.\n\nTower Ascending sells all towers of that type and buffs them. You can only ascend after reaching the popping/cash requirement";

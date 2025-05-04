@@ -95,6 +95,17 @@ public class TowerAscension : BloonsTD6Mod
         }
     }
 
+    public override void OnRestart()
+    {
+        DataById.Clear();
+
+        foreach (var data in CreateData())
+        {
+            DataById[data.TowerId] = data;
+            AscensionUi.instance?.UpdateForData(data);
+        }
+    }
+
     public override void OnCashAdded(double amount, Simulation.CashType from, int cashIndex, Simulation.CashSource source, Tower tower)
     {
         if (tower != null && source != Simulation.CashSource.TowerSold && amount > 0 && !IsBanned(tower.towerModel))

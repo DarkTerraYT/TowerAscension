@@ -1,1 +1,1 @@
-When you push a tag to GitHub, the contents of this file will become your release message
+Ascension data no longer caries over restarts, prevent erroring when opening ascension ui for the first time while a tower is popping bloons
