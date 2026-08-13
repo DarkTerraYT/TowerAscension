@@ -24,10 +24,12 @@ namespace TowerAscension
         {
             if (!ModifierByTowerId.TryGetValue(tower, out var modifier))
             {
-                var newModifier = new DefaultAscensionModifier(tower);
-                newModifier.RealTower = tower;
-                newModifier.mod = ModHelper.GetMod("TowerAscension");
+                var newModifier = new DefaultAscensionModifier(tower)
+                {
+                    mod = ModHelper.GetMod("TowerAscension")
+                };
                 newModifier.Ascend = newModifier.OnAscend;
+                ModifierByTowerId.Add(tower, newModifier);
                 return newModifier;
             }
 
@@ -52,7 +54,7 @@ namespace TowerAscension
         {
             if (m_ModifierByTowerId.ContainsKey(TowerId) && !Replace)
             {
-                ModHelper.Warning<TowerAscension>($"Ascenion Modifier for tower {TowerId} already exists. If you're trying to replace, override \"AscensionModifier.Replace\"");
+                ModHelper.Warning<TowerAscension>($"Ascension Modifier for tower {TowerId} already exists. If you're trying to replace, override \"AscensionModifier.Replace\"");
                 return;
             }
 

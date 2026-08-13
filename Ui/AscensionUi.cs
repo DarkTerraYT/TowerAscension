@@ -50,7 +50,7 @@ namespace TowerAscension.Ui
                     var popsBar = panel.transform.FindChild("PopsBar");
                     var popsFill = popsBar.FindChild("Fill").Cast<RectTransform>();
                     var popsText = popsBar.FindChild("PopsText").GetComponent<ModHelperText>();
-                    popsFill.sizeDelta = new(Mathf.Clamp((float)(data.Pops / data.PopsRequired) * 400, 0, 400), 80);
+                    popsFill.sizeDelta = new(Mathf.Clamp((data.Pops / data.PopsRequired) * 400, 0, 400), 80);
 
                     popsText.SetText(data.IncreasePopsOnGenerateCash ? $"{data.Pops:#,###}/{data.PopsRequired:#,###} Cash" : $"{data.Pops:#,###}/{data.PopsRequired:#,###} Pops");
 
@@ -60,7 +60,7 @@ namespace TowerAscension.Ui
             }
             catch
             {
-
+                // ignore
             }
         }
 
@@ -73,43 +73,56 @@ namespace TowerAscension.Ui
             }
             else
             {
-                var mainPanel = inGame.mapRect.gameObject.AddModHelperPanel(new("Ascension", AscensionPanelWidth * 5, AscensionPanelHeight + 225), VanillaSprites.MainBgPanel);
+                var mainPanel = inGame.mapRect.gameObject.AddModHelperPanel(new("Ascension", AscensionPanelWidth * 5, (AscensionPanelHeight * 2) + 275), VanillaSprites.MainBgPanel);
                 instance = mainPanel.AddComponent<AscensionUi>();
                 instance.mainPanel = mainPanel;
 
-                MelonCoroutines.Start(instance.FinishCreation(Game.instance.model.towers.Where(t => t.IsBaseTower && !t.isSubTower && !TowerAscension.IsBanned(t))));
+                MelonCoroutines.Start(instance.FinishCreation(Game.instance.model.towers.Where(t => t.IsBaseTower && !t.isSubTower && !TowerAscension.IsBanned(t) && (t.GetModTower() == null || t.GetModTower() is {DontAddToShop: false}))));
             }
         }
 
         [HideFromIl2Cpp]
         IEnumerator FinishCreation(IEnumerable<TowerModel> twrs)
         {
-            var title = mainPanel.AddText(new("Title", 0, AscensionPanelHeight / 2 + 37.5f, AscensionPanelWidth * 2.5f, 100), AscensionTitleText);
+            var title = mainPanel.AddText(new("Title", 0, AscensionPanelHeight + 37.5f, AscensionPanelWidth * 2.5f, 100), AscensionTitleText);
 
             title.Text.enableAutoSizing = true;
             title.Text.fontSizeMax = 150;
 
-            scrollPanel = mainPanel.AddScrollPanel(new("ScrollPanel", 0, -82.5f, AscensionPanelWidth * 4.75f, AscensionPanelHeight + 50), RectTransform.Axis.Horizontal, null, 50);
+            scrollPanel = mainPanel.AddScrollPanel(new("ScrollPanel", 0, -82.5f, AscensionPanelWidth * 4.75f, (AscensionPanelHeight + 50) * 2), RectTransform.Axis.Horizontal, null, 50);
             scrollPanel.RemoveComponent<Mask>();
             scrollPanel.AddComponent<RectMask2D>();
-            /*scrollPanel.ScrollContent.RemoveComponent<HorizontalLayoutGroup>();
+            scrollPanel.ScrollContent.RemoveComponent<HorizontalLayoutGroup>();
             yield return null;
-            scrollPanel.ScrollContent.AddComponent<GridLayoutGroup>();*/
+            var grid = scrollPanel.ScrollContent.AddComponent<GridLayoutGroup>();
 
-            mainPanel.AddButton(new("CloseBtn", AscensionPanelWidth * 2.5f, AscensionPanelHeight / 2 + 112.5f, 200), VanillaSprites.CloseBtn, new Action(mainPanel.Hide));
+            grid.cellSize = new Vector2(AscensionPanelWidth, AscensionPanelHeight);
+            grid.spacing = new Vector2(50, 50);
+            grid.startAxis = GridLayoutGroup.Axis.Vertical;
+            grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            
+            mainPanel.AddButton(new("CloseBtn", AscensionPanelWidth * 2.5f, AscensionPanelHeight + 112.5f, 200), VanillaSprites.CloseBtn, new Action(mainPanel.Hide));
 
             addedTowers.Clear();
+            
+            while (scrollPanel == null || mainPanel == null)
+            {
+                yield break;
+            }
 
+            int counter = 0;
+            const int maxPerFrame = 6;
+            
             foreach (var twr in twrs)
             {
-                if(scrollPanel == null || mainPanel == null)
-                {
-                    yield break;
-                }
-
+                counter++;
                 scrollPanel.AddScrollContent(CreateAscensionDataPanel(twr));
                 addedTowers.Add(twr.baseId);
-                yield return null;
+                if (counter == maxPerFrame)
+                {
+                    counter = 0;
+                    yield return null;
+                }
             }
 
 
@@ -151,8 +164,8 @@ namespace TowerAscension.Ui
             rankText.Text.fontSizeMax = 60;
             rankText.Text.enableAutoSizing = true;
             rankText.Text.color = new Color32(192, 143, 18, 255);
-            var nameText = panel.AddText(new("Name", 0, AscensionPanelHeight / 2 - 50, AscensionPanelWidth, 100), towerId.Localize());
-            nameText.Text.enableAutoSizing = true;
+            var nameText = panel.AddText(new("Name", 0, AscensionPanelHeight / 2 - 50, AscensionPanelWidth - 20, 100), towerId.Localize());
+            nameText.EnableAutoSizing();
 
             var popsProgressBar = panel.AddImage(new("PopsBar", 0, -150, 400, 80), VanillaSprites.BrownInsertPanelDark);
             var popsProgressBarFill = popsProgressBar.AddImage(new("Fill", -200, 0, 400 * Mathf.Clamp((float)(TowerAscension.DataById[towerId].Pops / TowerAscension.DataById[towerId].PopsRequired) * 400, 0, 400), 80) { Pivot = new(0, 0.5f) }, VanillaSprites.GreenFillSmall);
